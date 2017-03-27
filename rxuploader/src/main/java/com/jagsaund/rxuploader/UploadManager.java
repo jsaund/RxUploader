@@ -27,15 +27,13 @@ public class UploadManager {
     @NonNull private final CompositeSubscription subscriptions;
 
     @VisibleForTesting
-    UploadManager(@NonNull UploadService uploadService, @NonNull UploadDataStore uploadDataStore,
+    UploadManager(@NonNull UploadInteractor uploadInteractor,
             @NonNull UploadErrorAdapter errorAdapter, @NonNull Subject<Job, Job> jobSubject,
             @NonNull Subject<Status, Status> statusSubject) {
         this.jobSubject = jobSubject;
         this.statusSubject = statusSubject;
 
-        final Uploader uploader = Uploader.create(uploadService, errorAdapter);
-        this.uploadInteractor = UploadInteractorImpl
-                .create(uploader, uploadDataStore, errorAdapter);
+        this.uploadInteractor = uploadInteractor;
 
         subscriptions = new CompositeSubscription();
 
@@ -164,10 +162,6 @@ public class UploadManager {
 
         @NonNull
         public UploadManager build() {
-            final Subject<Job, Job> jobSubject = BehaviorSubject.<Job>create().toSerialized();
-            final Subject<Status, Status> statusSubject =
-                    BehaviorSubject.<Status>create().toSerialized();
-
             if (uploadService == null) {
                 throw new IllegalArgumentException("Must provide a valid upload service");
             }
@@ -180,7 +174,15 @@ public class UploadManager {
                 throw new IllegalArgumentException("Must provide a valid upload error adapter");
             }
 
-            return new UploadManager(uploadService, uploadDataStore, uploadErrorAdapter, jobSubject,
+            final Subject<Job, Job> jobSubject = BehaviorSubject.<Job>create().toSerialized();
+            final Subject<Status, Status> statusSubject =
+                    BehaviorSubject.<Status>create().toSerialized();
+
+            final Uploader uploader = Uploader.create(uploadService, uploadErrorAdapter);
+            final UploadInteractor uploadInteractor =
+                    UploadInteractorImpl.create(uploader, uploadDataStore, uploadErrorAdapter);
+
+            return new UploadManager(uploadInteractor, uploadErrorAdapter, jobSubject,
                     statusSubject);
         }
     }
