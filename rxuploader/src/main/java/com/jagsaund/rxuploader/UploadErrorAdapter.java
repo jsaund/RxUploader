@@ -7,5 +7,5 @@ public interface UploadErrorAdapter {
     @NonNull
     ErrorType fromThrowable(@NonNull Throwable error);
 
-    boolean isRetriable(@NonNull Throwable error);
+    boolean canRetry(@NonNull Throwable error);
 }

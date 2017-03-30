@@ -21,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import rx.Observable;
+import rx.Single;
 import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
 
@@ -69,9 +69,9 @@ public class UploaderTest {
             try {
                 data.body().writeTo(sink);
             } catch (@NonNull IOException e) {
-                Observable.just(Status.createFailed(jobId, ErrorType.UNKNOWN));
+                Single.error(e);
             }
-            return Observable.just(Status.createCompleted(jobId, "complete"));
+            return Single.just("complete");
         };
 
         final Uploader uploader = new Uploader(service, uploadErrorAdapter, Schedulers.io());
@@ -126,13 +126,16 @@ public class UploaderTest {
             }
         });
 
+        when(uploadErrorAdapter.fromThrowable(any(IOException.class)))
+                .thenReturn(ErrorType.UNKNOWN);
+
         final UploadService service = (__, data) -> {
             try {
                 data.body().writeTo(sink);
             } catch (@NonNull IOException e) {
-                return Observable.just(Status.createFailed(jobId, ErrorType.UNKNOWN));
+                return Single.error(e);
             }
-            return Observable.just(Status.createCompleted(jobId, "complete"));
+            return Single.just("complete");
         };
 
         final Uploader uploader = new Uploader(service, uploadErrorAdapter, Schedulers.io());

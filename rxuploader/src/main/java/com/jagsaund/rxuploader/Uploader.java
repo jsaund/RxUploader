@@ -74,7 +74,7 @@ class Uploader {
     @NonNull
     public Observable<Status> upload(@NonNull Job job, @NonNull File file) {
         final String name = StringUtils.getOrDefault(formDataName, DEFAULT_FORM_DATA_NAME);
-        return new UploadObservable(uploadService, job, file, name)
+        return new UploadObservable(uploadService, errorAdapter, job, file, name)
                 .create()
                 .onErrorResumeNext(error -> {
                     final ErrorType errorType = errorAdapter.fromThrowable(error);
@@ -86,13 +86,16 @@ class Uploader {
 
     static class UploadObservable {
         @NonNull private final UploadService uploadService;
+        @NonNull private final UploadErrorAdapter errorAdapter;
         @NonNull private final Job job;
         @NonNull private final File file;
         @NonNull private final String formDataName;
 
-        UploadObservable(@NonNull UploadService uploadService, @NonNull Job job, @NonNull File file,
+        UploadObservable(@NonNull UploadService uploadService,
+                @NonNull UploadErrorAdapter errorAdapter, @NonNull Job job, @NonNull File file,
                 @NonNull String formDataName) {
             this.uploadService = uploadService;
+            this.errorAdapter = errorAdapter;
             this.job = job;
             this.file = file;
             this.formDataName = formDataName;
@@ -102,8 +105,9 @@ class Uploader {
         Observable<Status> create() {
             return Observable.create(emitter -> {
                 final RequestBody fileBody;
+                final String jobId = job.id();
                 try {
-                    fileBody = RxRequestBody.create(emitter, job.id(), file, job.mimeType());
+                    fileBody = RxRequestBody.create(emitter, jobId, file, job.mimeType());
                 } catch(@NonNull FileNotFoundException e) {
                     emitter.onError(e);
                     return;
@@ -114,7 +118,7 @@ class Uploader {
                 final MultipartBody.Part body =
                         MultipartBody.Part.createFormData(formDataName, filename, fileBody);
                 final Subscription subscription = uploadService.upload(job.metadata(), body)
-                        .subscribe(new Subscriber<Status>() {
+                        .subscribe(new Subscriber<Object>() {
                             @Override
                             public void onCompleted() {
                                 emitter.onCompleted();
@@ -122,12 +126,14 @@ class Uploader {
 
                             @Override
                             public void onError(@NonNull Throwable e) {
-                                emitter.onError(e);
+                                final ErrorType errorType = errorAdapter.fromThrowable(e);
+                                emitter.onNext(Status.createFailed(jobId, errorType));
+                                emitter.onCompleted();
                             }
 
                             @Override
-                            public void onNext(@NonNull Status status) {
-                                emitter.onNext(status);
+                            public void onNext(@NonNull Object response) {
+                                emitter.onNext(Status.createCompleted(jobId, response));
                             }
                         });
                 emitter.setSubscription(subscription);

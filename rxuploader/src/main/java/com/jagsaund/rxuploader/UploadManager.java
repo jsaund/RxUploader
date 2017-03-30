@@ -113,7 +113,7 @@ public class UploadManager {
 
         // merge the sending and remaining updates with the backpressure modes applied
         // this will be used to share with clients
-        statusObservable = updates.mergeWith(sending);
+        statusObservable = updates.mergeWith(sending).share();
 
         subscriptions.add(jobQueue.subscribe(statusSubject::onNext));
         subscriptions.add(uploadJobs.subscribe(statusSubject::onNext));
@@ -133,9 +133,7 @@ public class UploadManager {
                 .getAll()
                 .map(Job::status);
 
-        final Observable<Status> status = statusObservable.share();
-
-        return persistedStatus.concatWith(status);
+        return persistedStatus.concatWith(statusObservable);
     }
 
     /**
