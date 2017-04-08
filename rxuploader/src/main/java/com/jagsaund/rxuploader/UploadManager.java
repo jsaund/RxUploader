@@ -100,20 +100,14 @@ public class UploadManager {
         // status updates which are progress updates of how much has been uploaded can be too
         // much for the client to consume -- filter this out and apply a backpressure mode
         // to keep the latest
-        final Observable<Status> sending = statusUpdates
+        final Observable<Status> sending = statusSubject
+                .asObservable()
                 .filter(status -> status.statusType() == StatusType.SENDING)
                 .onBackpressureLatest();
 
-        // filter out the remaining type of updates
-        final Observable<Status> updates = statusUpdates
-                .filter(status -> {
-                    final StatusType type = status.statusType();
-                    return type != StatusType.SENDING && type != StatusType.INVALID;
-                });
-
         // merge the sending and remaining updates with the backpressure modes applied
         // this will be used to share with clients
-        statusObservable = updates.mergeWith(sending).share();
+        statusObservable = statusUpdates.mergeWith(sending).share();
 
         subscriptions.add(jobQueue.subscribe(statusSubject::onNext));
         subscriptions.add(uploadJobs.subscribe(statusSubject::onNext));
