@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Sample</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="upload_photos">Upload Photos</string>
 </resources>
