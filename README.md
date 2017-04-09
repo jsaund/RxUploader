@@ -3,6 +3,8 @@ RxUploader for Android
 
 A reactive Uploader for [Android][1] using [RxJava][2] and [OkHttp][3]
 
+![](docs/static/rxuploader_architecture.png)
+
 Download
 =======
 TODO
