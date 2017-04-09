@@ -21,6 +21,10 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.android.schedulers.AndroidSchedulers;
 
+/**
+ * A local data store which persists {@link Job} items to {@link SharedPreferences}. {@link Job}
+ * items are serialized/deserialized to/from JSON.
+ */
 public class SimpleUploadDataStore implements UploadDataStore {
     @VisibleForTesting static final String JOB_REPO = "upload_job_repository";
 
