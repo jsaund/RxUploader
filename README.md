@@ -11,7 +11,37 @@ TODO
 
 Usage
 =======
-TODO
+A new instance of the `UploadManager` can be constructed via the `UploadManager.Builder`.
+```
+final UploadManager uploadManager = UploadManager.builder()
+    .withUploadDataStore(dataStore)
+    .withUploadService(service)
+    .withUploadErrorAdapter(errorAdapter)
+    .build();
+```
+
+Clients must implement a `UploadService` and `UploadErrorAdapter`. Optionally, clients can implement the `UploadDataStore` or use a `SimpleUploadDataStore` which persists Jobs to SharedPreferences.
+
+The `UploadService` defines the interface for the `UploadManager` to interact with the remote server responsible for accepting files to be uploaded.
+
+The `UploadErrorAdapter` defines which exceptions can be retried and what `ErrorType` they map to.
+
+The `UploadManager` provides methods to `enqueue` a new Job, subscribe to `status` updates, and `retry` failed Jobs.
+
+See rxuploader-sample project for a complete example.
+
+Dependencies
+=======
+
+[RxJava][2]
+
+[OkHttp][3]
+
+[Gson][4]
+
+[AutoValue][5]
+
+[AutoValue-Gson][6]
 
 License
 =======
@@ -33,3 +63,6 @@ License
 [1]: https://developer.android.com
 [2]: https://github.com/ReactiveX/RxJava
 [3]: https://github.com/square/okhttp
+[4]: https://github.com/google/gson
+[5]: https://github.com/google/auto/tree/master/value
+[6]: https://github.com/rharter/auto-value-gson
