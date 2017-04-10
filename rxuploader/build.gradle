@@ -1,8 +1,24 @@
 apply plugin: 'com.android.library'
-apply from: 'gradle-maven-push.gradle'
-
 apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'me.tatarka.retrolambda'
+
+dependencies {
+    compile rootProject.ext.okHttp
+    compile rootProject.ext.rxJava
+    compile rootProject.ext.rxAndroid
+    compile rootProject.ext.annotations
+    compile rootProject.ext.gson
+
+    provided rootProject.ext.autovalue
+    provided rootProject.ext.autovalueGson
+
+    apt rootProject.ext.autovalue
+    apt rootProject.ext.autovalueGson
+
+    testCompile rootProject.ext.junit
+    testCompile rootProject.ext.mockito
+    testCompile rootProject.ext.hamcrest
+}
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -24,22 +40,16 @@ android {
             showStandardStreams = true
         }
     }
-
-    dependencies {
-        compile rootProject.ext.okHttp
-        compile rootProject.ext.rxJava
-        compile rootProject.ext.rxAndroid
-        compile rootProject.ext.annotations
-        compile rootProject.ext.gson
-
-        provided rootProject.ext.autovalue
-        provided rootProject.ext.autovalueGson
-
-        apt rootProject.ext.autovalue
-        apt rootProject.ext.autovalueGson
-
-        testCompile rootProject.ext.junit
-        testCompile rootProject.ext.mockito
-        testCompile rootProject.ext.hamcrest
-    }
 }
+
+android.libraryVariants.all { variant ->
+    def task = project.tasks.create "jar${variant.name.capitalize()}", Jar
+    task.description = "Create jar artifact for ${variant.name}"
+    task.dependsOn variant.javaCompile
+    task.from variant.javaCompile.destinationDir
+    task.destinationDir = project.file("${project.buildDir}/outputs/jar")
+    task.archiveName = "${project.name}-${variant.baseName}.jar"
+    artifacts.add('archives', task);
+}
+
+apply from: 'gradle-maven-push.gradle'

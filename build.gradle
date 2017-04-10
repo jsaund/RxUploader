@@ -13,7 +13,11 @@ subprojects {
 
     repositories {
         mavenCentral()
+        jcenter()
     }
+
+    group = GROUP
+    version = VERSION_NAME
 }
 
 ext {
@@ -21,6 +25,8 @@ ext {
     compileSdkVersion = 25
     targetSdkVersion = compileSdkVersion
     buildToolsVersion = '25.0.2'
+    versionName = '0.0.1'
+    versionCode = 1
 
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8

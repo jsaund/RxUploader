@@ -1,2 +1,4 @@
+rootProject.name = 'rxuploader-root'
+
 include ':rxuploader'
 include ':rxuploader-sample'
