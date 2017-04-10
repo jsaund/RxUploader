@@ -43,6 +43,8 @@ Dependencies
 
 [AutoValue-Gson][6]
 
+[Retrolambda][7]
+
 License
 =======
 
@@ -66,3 +68,4 @@ License
 [4]: https://github.com/google/gson
 [5]: https://github.com/google/auto/tree/master/value
 [6]: https://github.com/rharter/auto-value-gson
+[7]: https://github.com/evant/gradle-retrolambda

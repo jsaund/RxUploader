@@ -13,6 +13,9 @@
 *.rar
 *.tar
 *.zip
+*.jar
+*.war
+*.ear
 
 # Logs and databases #
 ######################
@@ -35,6 +38,20 @@ Thumbs.db
 .gradle
 .gradletasknamecache
 .m2
+
+# Gradle Signing #
+##################
+signing.properties
+rxuploader.keystore
+
+# Maven #
+#########
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
 
 # Build output directies
 target/
