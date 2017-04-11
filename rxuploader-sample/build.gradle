@@ -5,25 +5,25 @@ apply plugin: 'me.tatarka.retrolambda'
 dependencies {
     compile project(':rxuploader')
 
-    compile rootProject.ext.appCompat
+    compile rootProject.deps.androidDesign
+    compile rootProject.deps.androidSupportLibrary
+    compile rootProject.deps.androidAnnotations
 
-    compile rootProject.ext.okHttp
+    compile rootProject.deps.okHttp
+    compile rootProject.deps.okHttpLogging
 
-    compile rootProject.ext.rxJava
-    compile rootProject.ext.rxAndroid
-    compile rootProject.ext.annotations
-    compile rootProject.ext.gson
+    compile rootProject.deps.retrofit
+    compile rootProject.deps.retrofitGsonConverter
+    compile rootProject.deps.retrofitRxJavaAdapter
 
-    provided rootProject.ext.autovalue
-    provided rootProject.ext.autovalueGson
+    compile rootProject.deps.rxJava
+    compile rootProject.deps.rxAndroid
 
-    compile 'com.squareup.okhttp3:logging-interceptor:3.6.0'
-    compile 'com.squareup.retrofit2:retrofit:2.2.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.2.0'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.2.0'
-    compile 'com.jakewharton.timber:timber:4.5.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:25.3.1'
+    compile rootProject.deps.gson
+    provided rootProject.deps.autovalue
+    provided rootProject.deps.autovalueGson
+
+    compile rootProject.deps.timber
 
     // oauth1
     compile 'se.akerfeldt:okhttp-signpost:1.1.0'
@@ -31,12 +31,12 @@ dependencies {
 }
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion rootProject.COMPILE_SDK_VERSION
+    buildToolsVersion rootProject.ANDROID_BUILD_TOOLS_VERSION
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdkVersion rootProject.MIN_SDK_VERSION
+        targetSdkVersion rootProject.TARGET_SDK_VERSION
         versionCode rootProject.ext.versionCode
         versionName rootProject.ext.versionName
     }
@@ -46,8 +46,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility rootProject.ext.sourceCompatibility
-        targetCompatibility rootProject.ext.targetCompatibility
+        sourceCompatibility rootProject.JAVA_SOURCE_VERSION
+        targetCompatibility rootProject.JAVA_TARGET_VERSION
     }
 
     testOptions.unitTests.all {

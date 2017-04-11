@@ -1,51 +1,30 @@
-subprojects {
-    buildscript {
-        repositories {
-            mavenCentral()
-            jcenter()
-        }
-        dependencies {
-            classpath 'com.android.tools.build:gradle:2.3.1'
-            classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-            classpath 'me.tatarka:gradle-retrolambda:3.6.0'
-        }
-    }
-
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
     repositories {
         mavenCentral()
         jcenter()
     }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.3.1'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath 'me.tatarka:gradle-retrolambda:3.6.0'
+    }
+}
 
-    group = GROUP
-    version = VERSION_NAME
+allprojects {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
+subprojects { projects ->
+    apply from: "$rootDir/dependencies.gradle"
 }
 
 ext {
-    minSdkVersion = 19
-    compileSdkVersion = 25
-    targetSdkVersion = compileSdkVersion
-    buildToolsVersion = '25.0.2'
     versionName = '0.0.1'
     versionCode = 1
-
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-
-    okHttp = 'com.squareup.okhttp3:okhttp:3.6.0'
-    rxJava = 'io.reactivex:rxjava:1.2.9'
-    rxAndroid = 'io.reactivex:rxandroid:1.2.1'
-    appCompat = 'com.android.support:appcompat-v7:25.3.1'
-    annotations = 'com.android.support:support-annotations:25.3.1'
-    autovalue = 'com.google.auto.value:auto-value:1.4'
-    autovalueGson = 'com.ryanharter.auto.value:auto-value-gson:0.4.4'
-    gson = 'com.google.code.gson:gson:2.8.0'
-
-    // testing
-    junit = 'junit:junit:4.12'
-    robolectric = 'org.robolectric:robolectric:3.1.4'
-    mockito = 'org.mockito:mockito-core:1.10.19'
-    hamcrest = 'org.hamcrest:hamcrest-library:1.3'
-    okHttpMockWebserver = 'com.squareup.okhttp3:mockwebserver:3.6.0'
 }
 
 def isReleaseBuild() {
@@ -53,13 +32,13 @@ def isReleaseBuild() {
 }
 
 def getReleaseRepositoryUrl() {
-    return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
-            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL :
+            "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 }
 
 def getSnapshotRepositoryUrl() {
-    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
-            : "https://oss.sonatype.org/content/repositories/snapshots/"
+    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL :
+            "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
 def getRepositoryUsername() {
