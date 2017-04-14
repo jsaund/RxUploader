@@ -19,6 +19,8 @@ dependencies {
     compile rootProject.deps.rxJava
     compile rootProject.deps.rxAndroid
 
+    compile rootProject.deps.glide
+
     compile rootProject.deps.gson
     provided rootProject.deps.autovalue
     provided rootProject.deps.autovalueGson

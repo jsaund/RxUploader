@@ -24,6 +24,7 @@ public abstract class PhotoJSONModel {
     @SerializedName("name")
     public abstract String name();
 
+    @Nullable
     @SerializedName("description")
     public abstract String description();
 

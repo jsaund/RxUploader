@@ -1,24 +1,29 @@
 package com.jagsaund.rxuploader.sample;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 import com.jagsaund.rxuploader.sample.model.UploadPhotoList;
 import com.jagsaund.rxuploader.sample.model.data.DataModel;
 import java.util.List;
 
 public class UploadRecyclerAdapter extends RecyclerView.Adapter<UploadViewHolder> {
     @NonNull private final UploadPhotoList photoList;
+    @NonNull private final RequestManager glide;
 
-    public UploadRecyclerAdapter() {
+    public UploadRecyclerAdapter(@NonNull Context context) {
         photoList = new UploadPhotoList(this);
+        glide = Glide.with(context);
     }
 
     @NonNull
     @Override
     public UploadViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return UploadViewHolder.create(parent);
+        return UploadViewHolder.create(parent, glide);
     }
 
     @Override

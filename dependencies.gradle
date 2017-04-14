@@ -16,6 +16,7 @@ rootProject.ext.AUTOVALUE_GSON_VERSION = "0.4.4"
 rootProject.ext.GSON_VERSION = "2.8.0"
 rootProject.ext.RETROFIT_VERSION = "2.2.0"
 rootProject.ext.TIMBER_VERSION = "4.5.1"
+rootProject.ext.GLIDE_VERSION = "3.7.0"
 
 rootProject.ext.JUNIT_VERSION = "4.12"
 rootProject.ext.ROBOLECTRIC_VERSION = "3.1.4"
@@ -32,12 +33,12 @@ rootProject.ext.deps =
          retrofitGsonConverter: "com.squareup.retrofit2:converter-gson:$RETROFIT_VERSION",
          retrofitRxJavaAdapter: "com.squareup.retrofit2:adapter-rxjava:$RETROFIT_VERSION",
          timber               : "com.jakewharton.timber:timber:$TIMBER_VERSION",
-
          rxJava               : "io.reactivex:rxjava:$RX_JAVA_VERSION",
          rxAndroid            : "io.reactivex:rxandroid:$RX_ANDROID_VERSION",
          autovalue            : "com.google.auto.value:auto-value:$AUTOVALUE_VERSION",
          autovalueGson        : "com.ryanharter.auto.value:auto-value-gson:$AUTOVALUE_GSON_VERSION",
          gson                 : "com.google.code.gson:gson:$GSON_VERSION",
+         glide                : "com.github.bumptech.glide:glide:$GLIDE_VERSION",
          junit                : "junit:junit:$JUNIT_VERSION",
          robolectric          : "org.robolectric:robolectric:$ROBOLECTRIC_VERSION",
          mockito              : "org.mockito:mockito-core:$MOCKITO_VERSION",

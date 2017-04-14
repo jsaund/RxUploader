@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         subscriptions = new CompositeSubscription();
 
-        adapter = new UploadRecyclerAdapter();
+        adapter = new UploadRecyclerAdapter(this);
         final RecyclerView jobsListView = (RecyclerView) findViewById(R.id.list_jobs);
         jobsListView.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -98,10 +98,13 @@ public class MainActivity extends AppCompatActivity {
         subscriptions.add(uploadManager.status()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(status -> {
-                    final DataModel m = UploadDataModel.create("", "", status);
+                    final DataModel m = UploadDataModel.create(NAME, DESCRIPTION, status);
                     if (status.statusType() == StatusType.COMPLETED) {
                         adapter.remove(m);
-                        getPhotos();
+                        final PhotoJSONModel response = (PhotoJSONModel) status.response();
+                        if (response != null) {
+                            adapter.add(PhotoDataModel.create(response));
+                        }
                     } else {
                         adapter.add(m);
                     }

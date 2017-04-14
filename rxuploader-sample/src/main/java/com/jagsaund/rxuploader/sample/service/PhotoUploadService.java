@@ -27,10 +27,10 @@ public class PhotoUploadService implements UploadService<PhotoJSONModel> {
             @NonNull MultipartBody.Part data) {
         final String name = (String) metadata.get("name");
         final String description = (String) metadata.get("description");
-        final Integer privacy = (Integer) metadata.get("privacy");
+        final Double privacy = (Double) metadata.get("privacy");
 
         return apiService
-                .uploadPhoto(name, description, privacy != null ? privacy : 1, data)
+                .uploadPhoto(name, description, privacy != null ? privacy.intValue() : 0, data)
                 .map(UploadPhotoJSONModel::photo)
                 .toSingle();
     }
