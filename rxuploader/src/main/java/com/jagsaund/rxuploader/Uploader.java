@@ -16,7 +16,7 @@ import okhttp3.RequestBody;
 import rx.Emitter;
 import rx.Observable;
 import rx.Scheduler;
-import rx.Subscriber;
+import rx.SingleSubscriber;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
 
@@ -118,22 +118,18 @@ class Uploader {
                 final MultipartBody.Part body =
                         MultipartBody.Part.createFormData(formDataName, filename, fileBody);
                 final Subscription subscription = uploadService.upload(job.metadata(), body)
-                        .subscribe(new Subscriber<Object>() {
+                        .subscribe(new SingleSubscriber() {
                             @Override
-                            public void onCompleted() {
+                            public void onSuccess(@NonNull Object response) {
+                                emitter.onNext(Status.createCompleted(jobId, response));
                                 emitter.onCompleted();
                             }
 
                             @Override
-                            public void onError(@NonNull Throwable e) {
-                                final ErrorType errorType = errorAdapter.fromThrowable(e);
+                            public void onError(@NonNull Throwable error) {
+                                final ErrorType errorType = errorAdapter.fromThrowable(error);
                                 emitter.onNext(Status.createFailed(jobId, errorType));
                                 emitter.onCompleted();
-                            }
-
-                            @Override
-                            public void onNext(@NonNull Object response) {
-                                emitter.onNext(Status.createCompleted(jobId, response));
                             }
                         });
                 emitter.setSubscription(subscription);

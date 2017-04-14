@@ -14,7 +14,7 @@ import java.io.File;
 import rx.Observable;
 import rx.functions.Actions;
 import rx.observables.ConnectableObservable;
-import rx.subjects.BehaviorSubject;
+import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 import rx.subscriptions.CompositeSubscription;
 
@@ -247,9 +247,9 @@ public class UploadManager {
                 throw new IllegalArgumentException("Must provide a valid upload error adapter");
             }
 
-            final Subject<Job, Job> jobSubject = BehaviorSubject.<Job>create().toSerialized();
+            final Subject<Job, Job> jobSubject = PublishSubject.<Job>create().toSerialized();
             final Subject<Status, Status> statusSubject =
-                    BehaviorSubject.<Status>create().toSerialized();
+                    PublishSubject.<Status>create().toSerialized();
 
             final Uploader uploader = Uploader.create(uploadService, uploadErrorAdapter);
             final UploadInteractor uploadInteractor =
