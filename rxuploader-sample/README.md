@@ -4,6 +4,8 @@ RxUploader Sample Application
 This sample application demonstrates how to use the RxUploader to manage and queue uploads.
 The application connects to your 500px account to retrieve and upload photos. The photo uploaded to 500px will be private by default. You can change this by updating the `PRIVACY_MODE` defined in `MainActivity.java` to `PhotoPrivacy.PUBLIC`.
 
+![](rxuploader_sample_app_demo.gif)
+
 Configuration
 =======
 
