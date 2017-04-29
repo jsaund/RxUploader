@@ -16,7 +16,7 @@ public abstract class PhotoJSONModel {
     }
 
     @SerializedName("id")
-    public abstract Integer id();
+    public abstract int id();
 
     @SerializedName("user_id")
     public abstract Integer userId();
@@ -28,13 +28,11 @@ public abstract class PhotoJSONModel {
     @SerializedName("description")
     public abstract String description();
 
-    @Nullable
     @SerializedName("width")
-    public abstract Integer width();
+    public abstract int width();
 
-    @Nullable
     @SerializedName("height")
-    public abstract Integer height();
+    public abstract int height();
 
     @SerializedName("image_url")
     public abstract String imageUrl();
