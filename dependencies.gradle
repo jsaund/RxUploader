@@ -5,7 +5,7 @@ rootProject.ext.TARGET_SDK_VERSION = 25
 rootProject.ext.COMPILE_SDK_VERSION = 25
 rootProject.ext.MIN_SDK_VERSION = 19
 
-rootProject.ext.ANDROID_BUILD_TOOLS_VERSION = "25.0.2"
+rootProject.ext.ANDROID_BUILD_TOOLS_VERSION = "25.0.3"
 rootProject.ext.ANDROID_SUPPORT_LIBS_VERSION = "25.3.1"
 
 rootProject.ext.OKHTTP_VERSION = "3.6.0"
