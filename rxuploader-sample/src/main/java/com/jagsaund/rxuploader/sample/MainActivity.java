@@ -15,6 +15,7 @@ import com.jagsaund.rxuploader.job.StatusType;
 import com.jagsaund.rxuploader.sample.config.Config;
 import com.jagsaund.rxuploader.sample.model.data.DataModel;
 import com.jagsaund.rxuploader.sample.model.data.PhotoDataModel;
+import com.jagsaund.rxuploader.sample.model.data.PhotoPrivacy;
 import com.jagsaund.rxuploader.sample.model.data.UploadDataModel;
 import com.jagsaund.rxuploader.sample.model.wire.PhotoJSONModel;
 import com.jagsaund.rxuploader.sample.service.ApiService;
@@ -36,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String FILENAME = "test.jpeg";
     private static final String NAME = "test";
     private static final String DESCRIPTION = "test";
+
+    // photo will not be marked as a public upload
+    private static final PhotoPrivacy PRIVACY_MODE = PhotoPrivacy.PRIVATE;
 
     private ApiService apiService;
     private UploadRecyclerAdapter adapter;
@@ -75,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
             final Map<String, Object> metadata = new HashMap<>();
             metadata.put("description", DESCRIPTION);
             metadata.put("name", NAME);
-            metadata.put("privacy", 0); // photo will not be marked as a public upload
+            metadata.put("privacy", PRIVACY_MODE.value);
 
             final Job job = Job.builder()
                     .setId(jobId)
