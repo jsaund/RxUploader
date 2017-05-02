@@ -99,7 +99,7 @@ public class SimpleUploadDataStore implements UploadDataStore {
             sharedPreferences.edit().putString(jobIdKey(job.id()), rawJob).commit();
 
             final Set<String> keys = sharedPreferences.getStringSet(KEY_JOB_IDS, new HashSet<>());
-            keys.add(String.valueOf(job.id()));
+            keys.add(jobIdKey(job.id()));
             sharedPreferences.edit().putStringSet(KEY_JOB_IDS, keys).commit();
 
             return job;

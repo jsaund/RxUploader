@@ -15,9 +15,10 @@ dependencies {
     apt rootProject.deps.autovalue
     apt rootProject.deps.autovalueGson
 
+    testCompile rootProject.deps.hamcrest
     testCompile rootProject.deps.junit
     testCompile rootProject.deps.mockito
-    testCompile rootProject.deps.hamcrest
+    testCompile rootProject.deps.robolectric
 }
 
 android {
