@@ -7,6 +7,7 @@ import com.jagsaund.rxuploader.job.Status;
 import com.jagsaund.rxuploader.rx.RxRequestBody;
 import com.jagsaund.rxuploader.store.UploadService;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -179,6 +180,32 @@ public class UploaderTest {
         ts.awaitTerminalEvent(1, TimeUnit.SECONDS);
         ts.assertNoErrors();
         ts.assertValues(expectedStatus);
+    }
+
+    @Test
+    public void testUploadFileNotFoundException() throws Exception {
+        final File file = new File("invalid");
+        final String jobId = "job-id";
+         final Job job = Job.builder()
+                .setId(jobId)
+                .setStatus(Status.createQueued(jobId))
+                .setMetadata(Collections.emptyMap())
+                .setFilepath("invalid")
+                .setMimeType("text/plain")
+                .build();
+
+        when(uploadErrorAdapter.fromThrowable(any(FileNotFoundException.class)))
+                .thenReturn(ErrorType.FILE_NOT_FOUND);
+
+        final UploadService service = mock(UploadService.class);
+
+        final Uploader uploader = new Uploader(service, uploadErrorAdapter, Schedulers.io());
+        final TestSubscriber<Status> ts = TestSubscriber.create();
+        uploader.upload(job, file).subscribe(ts);
+
+        ts.awaitTerminalEvent(1, TimeUnit.SECONDS);
+        ts.assertNoErrors();
+        ts.assertValue(Status.createFailed(jobId, ErrorType.FILE_NOT_FOUND));
     }
 
     private File getFile(@NonNull String path) {
