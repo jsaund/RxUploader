@@ -85,7 +85,16 @@ public class UploadManager {
         // consume items that have status type of queued and upload them
         final Observable<Status> uploadJobs = statusUpdates
                 .filter(status -> status.statusType() == StatusType.QUEUED)
-                .flatMap(status -> uploadInteractor.upload(status.id()));
+                .flatMap(status -> {
+                    final String jobId = status.id();
+                    return uploadInteractor
+                            .upload(jobId)
+                            .onErrorResumeNext(error -> {
+                                final ErrorType errorType = errorAdapter.fromThrowable(error);
+                                final Status failedStatus = Status.createFailed(jobId, errorType);
+                                return Observable.just(failedStatus);
+                            });
+                });
 
         // consume items that have status type of completed and delete them from the data store
         // and the original file from disk

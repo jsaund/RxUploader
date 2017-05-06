@@ -1,7 +1,9 @@
 package com.jagsaund.rxuploader;
 
+import com.jagsaund.rxuploader.job.ErrorType;
 import com.jagsaund.rxuploader.job.Job;
 import com.jagsaund.rxuploader.job.Status;
+import java.io.IOException;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +14,9 @@ import rx.Observable;
 import rx.schedulers.TestScheduler;
 import rx.subjects.TestSubject;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -81,5 +86,45 @@ public class UploadManagerTest {
         verify(uploadInteractor).update(completed);
         // then the job should be deleted since it completed successfully
         verify(uploadInteractor).delete(TEST_JOB.id());
+    }
+
+    @Test
+    public void testEnqueueUploadFailure() throws Exception {
+        when(uploadErrorAdapter.fromThrowable(any(IOException.class)))
+                .thenReturn(ErrorType.NETWORK);
+
+        when(uploadInteractor.save(TEST_JOB))
+                .thenReturn(Observable.just(TEST_JOB));
+
+        when(uploadInteractor.update(TEST_JOB.status()))
+                .thenReturn(Observable.just(TEST_JOB));
+
+        final Status failed = Status.createFailed(TEST_JOB.id(), ErrorType.NETWORK);
+        when(uploadInteractor.update(failed))
+                .thenReturn(Observable.just(TEST_JOB.withStatus(failed)));
+
+        final Status[] statuses = new Status[] {
+                Status.createSending(TEST_JOB.id(), 0),
+                Status.createSending(TEST_JOB.id(), 50),
+        };
+        when(uploadInteractor.upload(TEST_JOB.id()))
+                .thenReturn(Observable.from(statuses)
+                        .concatWith(Observable.error(new IOException())));
+
+        // when a new job is queued to be uploaded
+        uploadManager.enqueue(TEST_JOB);
+        testScheduler.triggerActions();
+
+        // it should first be saved to the job repository
+        verify(uploadInteractor).save(TEST_JOB);
+        // then the job should be passed to the status queue where the job status is updated
+        verify(uploadInteractor).update(TEST_JOB.status());
+        // then the status is filtered for queued items which should be sent to upload
+        verify(uploadInteractor).upload(TEST_JOB.id());
+        // then the status should be updated once upload failed
+        verify(uploadInteractor).update(failed);
+
+        // make sure the job was not deleted
+        verify(uploadInteractor, times(0)).delete(anyString());
     }
 }

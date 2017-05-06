@@ -1,13 +1,12 @@
 package com.jagsaund.rxuploader;
 
 import android.support.annotation.NonNull;
-import com.jagsaund.rxuploader.job.ErrorType;
 import com.jagsaund.rxuploader.job.Job;
 import com.jagsaund.rxuploader.job.Status;
 import com.jagsaund.rxuploader.store.UploadDataStore;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -115,9 +114,8 @@ public class UploadInteractorImplTest {
         testScheduler.triggerActions();
 
         ts.awaitTerminalEvent(1, TimeUnit.SECONDS);
-        ts.assertNoErrors();
-        ts.assertValueCount(1);
-        ts.assertValue(Status.createFailed(jobId, ErrorType.FILE_NOT_FOUND));
+        ts.assertError(FileNotFoundException.class);
+        ts.assertNoValues();
 
         verify(uploader, times(0)).upload(any(Job.class), any(File.class));
     }
@@ -144,20 +142,15 @@ public class UploadInteractorImplTest {
         when(uploader.upload(eq(job), any(File.class))).thenReturn(
                 Observable.from(statuses).concatWith(Observable.error(new IOException("error"))));
 
-        when(errorAdapter.fromThrowable(any(IOException.class))).thenReturn(ErrorType.NETWORK);
-
         final TestSubscriber<Status> ts = TestSubscriber.create();
         uploadInteractor.upload(jobId).subscribe(ts);
 
         testScheduler.triggerActions();
 
         ts.awaitTerminalEvent(1, TimeUnit.SECONDS);
-        ts.assertNoErrors();
 
-        final Status[] expected = Arrays.copyOf(statuses, statuses.length + 1);
-        expected[expected.length - 1] = Status.createFailed(jobId, ErrorType.NETWORK);
-
-        ts.assertValues(expected);
+        ts.assertValues(statuses);
+        ts.assertError(IOException.class);
     }
 
     private File getFile(@NonNull String path) {

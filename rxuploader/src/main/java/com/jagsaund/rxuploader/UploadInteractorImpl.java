@@ -2,11 +2,11 @@ package com.jagsaund.rxuploader;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
-import com.jagsaund.rxuploader.job.ErrorType;
 import com.jagsaund.rxuploader.job.Job;
 import com.jagsaund.rxuploader.job.Status;
 import com.jagsaund.rxuploader.store.UploadDataStore;
 import java.io.File;
+import java.io.FileNotFoundException;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
@@ -70,20 +70,13 @@ class UploadInteractorImpl implements UploadInteractor {
                 .filter(job -> !Job.isInvalid(job))
                 .observeOn(networkScheduler)
                 .flatMap(job -> {
-                    final String jobId = job.id();
                     final File file = new File(job.filepath());
                     if (!file.exists()) {
-                        final Status failed = Status.createFailed(jobId, ErrorType.FILE_NOT_FOUND);
-                        return Observable.just(failed);
+                        return Observable.error(new FileNotFoundException());
                     }
                     return uploader
                             .upload(job, file)
-                            .distinctUntilChanged()
-                            .onErrorResumeNext(error -> {
-                                final ErrorType errorType = errorAdapter.fromThrowable(error);
-                                final Status status = Status.createFailed(jobId, errorType);
-                                return Observable.just(status);
-                            });
+                            .distinctUntilChanged();
                 })
                 .defaultIfEmpty(Status.createInvalid(id));
     }
