@@ -4,6 +4,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 public class StringUtils {
+    private StringUtils() {
+    }
+
     public static boolean isNullOrEmpty(@Nullable CharSequence s) {
         return s == null || s.length() == 0;
     }
