@@ -3,7 +3,6 @@ package com.jagsaund.rxuploader;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import com.jagsaund.rxuploader.job.ErrorType;
 import com.jagsaund.rxuploader.job.Job;
 import com.jagsaund.rxuploader.job.Status;
 import com.jagsaund.rxuploader.rx.RxRequestBody;
@@ -24,16 +23,13 @@ class Uploader {
     private static final String DEFAULT_FORM_DATA_NAME = "file";
 
     @NonNull private final UploadService uploadService;
-    @NonNull private final UploadErrorAdapter errorAdapter;
     @NonNull private final Scheduler worker;
 
     @Nullable private String formDataName;
 
     @VisibleForTesting
-    Uploader(@NonNull UploadService uploadService, @NonNull UploadErrorAdapter errorAdapter,
-            @NonNull Scheduler worker) {
+    Uploader(@NonNull UploadService uploadService, @NonNull Scheduler worker) {
         this.uploadService = uploadService;
-        this.errorAdapter = errorAdapter;
         this.worker = worker;
     }
 
@@ -42,13 +38,11 @@ class Uploader {
      * scheduler.
      *
      * @param uploadService Service to communicate to backend
-     * @param errorAdapter Maps errors to {@linkplain ErrorType}
      * @return A new uploader instance.
      */
     @NonNull
-    static Uploader create(@NonNull UploadService uploadService,
-            @NonNull UploadErrorAdapter errorAdapter) {
-        return new Uploader(uploadService, errorAdapter, Schedulers.io());
+    static Uploader create(@NonNull UploadService uploadService) {
+        return new Uploader(uploadService, Schedulers.io());
     }
 
     /**
@@ -74,28 +68,20 @@ class Uploader {
     @NonNull
     public Observable<Status> upload(@NonNull Job job, @NonNull File file) {
         final String name = StringUtils.getOrDefault(formDataName, DEFAULT_FORM_DATA_NAME);
-        return new UploadObservable(uploadService, errorAdapter, job, file, name)
+        return new UploadObservable(uploadService, job, file, name)
                 .create()
-                .onErrorResumeNext(error -> {
-                    final ErrorType errorType = errorAdapter.fromThrowable(error);
-                    final Status failed = Status.createFailed(job.id(), errorType);
-                    return Observable.just(failed);
-                })
                 .subscribeOn(worker);
     }
 
     static class UploadObservable {
         @NonNull private final UploadService uploadService;
-        @NonNull private final UploadErrorAdapter errorAdapter;
         @NonNull private final Job job;
         @NonNull private final File file;
         @NonNull private final String formDataName;
 
-        UploadObservable(@NonNull UploadService uploadService,
-                @NonNull UploadErrorAdapter errorAdapter, @NonNull Job job, @NonNull File file,
+        UploadObservable(@NonNull UploadService uploadService, @NonNull Job job, @NonNull File file,
                 @NonNull String formDataName) {
             this.uploadService = uploadService;
-            this.errorAdapter = errorAdapter;
             this.job = job;
             this.file = file;
             this.formDataName = formDataName;
@@ -127,9 +113,7 @@ class Uploader {
 
                             @Override
                             public void onError(@NonNull Throwable error) {
-                                final ErrorType errorType = errorAdapter.fromThrowable(error);
-                                emitter.onNext(Status.createFailed(jobId, errorType));
-                                emitter.onCompleted();
+                                emitter.onError(error);
                             }
                         });
                 emitter.setSubscription(subscription);

@@ -260,7 +260,7 @@ public class UploadManager {
             final Subject<Status, Status> statusSubject =
                     PublishSubject.<Status>create().toSerialized();
 
-            final Uploader uploader = Uploader.create(uploadService, uploadErrorAdapter);
+            final Uploader uploader = Uploader.create(uploadService);
             final UploadInteractor uploadInteractor =
                     UploadInteractorImpl.create(uploader, uploadDataStore, uploadErrorAdapter);
 

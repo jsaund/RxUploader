@@ -1,7 +1,6 @@
 package com.jagsaund.rxuploader;
 
 import android.support.annotation.NonNull;
-import com.jagsaund.rxuploader.job.ErrorType;
 import com.jagsaund.rxuploader.job.Job;
 import com.jagsaund.rxuploader.job.Status;
 import com.jagsaund.rxuploader.rx.RxRequestBody;
@@ -18,7 +17,6 @@ import okio.BufferedSink;
 import okio.Source;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -35,8 +33,6 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class UploaderTest {
     private static final String TEST_FILE = "upload_test.dat";
-
-    @Mock private UploadErrorAdapter uploadErrorAdapter;
 
     @Test
     public void testUpload() throws Exception {
@@ -75,7 +71,7 @@ public class UploaderTest {
             return Single.just("complete");
         };
 
-        final Uploader uploader = new Uploader(service, uploadErrorAdapter, Schedulers.io());
+        final Uploader uploader = new Uploader(service, Schedulers.io());
         final TestSubscriber<Status> ts = TestSubscriber.create();
         uploader.upload(job, file).subscribe(ts);
 
@@ -97,17 +93,12 @@ public class UploaderTest {
                 .build();
 
         final List<Status> values = new ArrayList<>();
-        values.add(Status.createSending(jobId, 0));
 
         final long total = file.length();
         long consumed = 0;
-        while (consumed < total) {
-            consumed = Math.min(total, consumed + RxRequestBody.BUFFER_SIZE);
-            if (consumed > 0.5f * total) {
-                values.add(Status.createFailed(jobId, ErrorType.UNKNOWN));
-                break;
-            }
+        while (consumed <= (0.5f * total)) {
             values.add(Status.createSending(jobId, (int) ((float) consumed * 100 / total)));
+            consumed = Math.min(total, consumed + RxRequestBody.BUFFER_SIZE);
         }
 
         final Status[] expectedStatus = new Status[values.size()];
@@ -127,9 +118,6 @@ public class UploaderTest {
             }
         });
 
-        when(uploadErrorAdapter.fromThrowable(any(IOException.class)))
-                .thenReturn(ErrorType.UNKNOWN);
-
         final UploadService service = (__, data) -> {
             try {
                 data.body().writeTo(sink);
@@ -139,12 +127,12 @@ public class UploaderTest {
             return Single.just("complete");
         };
 
-        final Uploader uploader = new Uploader(service, uploadErrorAdapter, Schedulers.io());
+        final Uploader uploader = new Uploader(service, Schedulers.io());
         final TestSubscriber<Status> ts = TestSubscriber.create();
         uploader.upload(job, file).subscribe(ts);
 
         ts.awaitTerminalEvent(1, TimeUnit.SECONDS);
-        ts.assertNoErrors();
+        ts.assertError(IOException.class);
         ts.assertValues(expectedStatus);
     }
 
@@ -160,26 +148,17 @@ public class UploaderTest {
                 .setMimeType("text/plain")
                 .build();
 
-        final List<Status> values = new ArrayList<>();
-        values.add(Status.createFailed(jobId, ErrorType.UNKNOWN));
-
-        final Status[] expectedStatus = new Status[values.size()];
-        values.toArray(expectedStatus);
-
-        when(uploadErrorAdapter.fromThrowable(any(RuntimeException.class)))
-                .thenReturn(ErrorType.UNKNOWN);
-
         final UploadService service = mock(UploadService.class);
         when(service.upload(anyMap(), any(MultipartBody.Part.class)))
                 .thenThrow(new RuntimeException(""));
 
-        final Uploader uploader = new Uploader(service, uploadErrorAdapter, Schedulers.io());
+        final Uploader uploader = new Uploader(service, Schedulers.io());
         final TestSubscriber<Status> ts = TestSubscriber.create();
         uploader.upload(job, file).subscribe(ts);
 
         ts.awaitTerminalEvent(1, TimeUnit.SECONDS);
-        ts.assertNoErrors();
-        ts.assertValues(expectedStatus);
+        ts.assertError(RuntimeException.class);
+        ts.assertNoValues();
     }
 
     @Test
@@ -194,18 +173,15 @@ public class UploaderTest {
                 .setMimeType("text/plain")
                 .build();
 
-        when(uploadErrorAdapter.fromThrowable(any(FileNotFoundException.class)))
-                .thenReturn(ErrorType.FILE_NOT_FOUND);
-
         final UploadService service = mock(UploadService.class);
 
-        final Uploader uploader = new Uploader(service, uploadErrorAdapter, Schedulers.io());
+        final Uploader uploader = new Uploader(service, Schedulers.io());
         final TestSubscriber<Status> ts = TestSubscriber.create();
         uploader.upload(job, file).subscribe(ts);
 
         ts.awaitTerminalEvent(1, TimeUnit.SECONDS);
-        ts.assertNoErrors();
-        ts.assertValue(Status.createFailed(jobId, ErrorType.FILE_NOT_FOUND));
+        ts.assertError(FileNotFoundException.class);
+        ts.assertNoValues();
     }
 
     private File getFile(@NonNull String path) {
