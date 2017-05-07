@@ -84,8 +84,6 @@ public class UploadManagerTest {
         verify(uploadInteractor).upload(TEST_JOB.id());
         // then the status should be updated once upload completes
         verify(uploadInteractor).update(completed);
-        // then the job should be deleted since it completed successfully
-        verify(uploadInteractor).delete(TEST_JOB.id());
     }
 
     @Test

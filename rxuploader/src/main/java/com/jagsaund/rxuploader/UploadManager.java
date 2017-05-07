@@ -96,11 +96,10 @@ public class UploadManager {
                             });
                 });
 
-        // consume items that have status type of completed and delete them from the data store
-        // and the original file from disk
+        // consume items that have status type of completed and delete the original file from disk
         final Observable<Boolean> deleteJobs = statusUpdates
                 .filter(status -> status.statusType() == StatusType.COMPLETED)
-                .flatMap(status -> uploadInteractor.delete(status.id()))
+                .flatMap(status -> uploadInteractor.get(status.id()))
                 .map(job -> {
                     final File file = new File(job.filepath());
                     return file.exists() && file.delete();
@@ -166,6 +165,19 @@ public class UploadManager {
                 .filter(this::canRetry)
                 .map(job -> Status.createQueued(job.id()));
         subscriptions.add(observable.subscribe(statusSubject::onNext));
+    }
+
+    /**
+     * Retrieve the {@link Job} associated with the provided {@code jobId} if one exists, otherwise
+     * a {@link Job#INVALID_JOB} is returned.
+     *
+     * @param jobId Id of the {@link Job} to retrieve
+     *
+     * @return {@link Job} associated with the jobId otherwise {@link Job#INVALID_JOB}
+     */
+    @NonNull
+    public Observable<Job> getJob(@NonNull String jobId) {
+        return uploadInteractor.get(jobId);
     }
 
     private boolean canRetry(@NonNull Job job) {
