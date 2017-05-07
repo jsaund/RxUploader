@@ -83,8 +83,10 @@ public class UploadManager {
                 .publish();
 
         // consume items that have status type of queued and upload them
+        // TODO Parameterize upload concurrency. Currently limiting to one upload at a time.
         final Observable<Status> uploadJobs = statusUpdates
                 .filter(status -> status.statusType() == StatusType.QUEUED)
+                .onBackpressureBuffer()
                 .flatMap(status -> {
                     final String jobId = status.id();
                     return uploadInteractor
@@ -94,7 +96,7 @@ public class UploadManager {
                                 final Status failedStatus = Status.createFailed(jobId, errorType);
                                 return Observable.just(failedStatus);
                             });
-                });
+                }, 1);
 
         // consume items that have status type of completed and delete the original file from disk
         final Observable<Boolean> deleteJobs = statusUpdates
