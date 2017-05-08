@@ -34,9 +34,9 @@ import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String FILENAME = "test.jpeg";
-    private static final String NAME = "test";
-    private static final String DESCRIPTION = "test";
+    private static final String[] FILENAME = new String[]{"test-1.jpg", "test-2.jpg", "test-3.jpg"};
+    private static final String[] NAME = new String[]{"test-1", "test-2", "test-3"};
+    private static final String[] DESCRIPTION = new String[]{"test-1", "test-2", "test-3"};
 
     // photo will not be marked as a public upload
     private static final PhotoPrivacy PRIVACY_MODE = PhotoPrivacy.PRIVATE;
@@ -73,23 +73,25 @@ public class MainActivity extends AppCompatActivity {
 
         final View uploadButton = findViewById(R.id.button_upload_photos);
         uploadButton.setOnClickListener(v -> {
-            final String jobId = String.valueOf(System.currentTimeMillis());
-            final String externalStoragePath = Environment.getExternalStorageDirectory().getPath();
-            final File file = new File(externalStoragePath, FILENAME);
-            final Map<String, Object> metadata = new HashMap<>();
-            metadata.put("description", DESCRIPTION);
-            metadata.put("name", NAME);
-            metadata.put("privacy", PRIVACY_MODE.value);
+            for (int i = 0; i < FILENAME.length; i++) {
+                final String jobId = String.valueOf(System.currentTimeMillis());
+                final String externalStoragePath = Environment.getExternalStorageDirectory().getPath();
+                final File file = new File(externalStoragePath, FILENAME[i]);
+                final Map<String, Object> metadata = new HashMap<>();
+                metadata.put("description", DESCRIPTION[i]);
+                metadata.put("name", NAME[i]);
+                metadata.put("privacy", PRIVACY_MODE.value);
 
-            final Job job = Job.builder()
-                    .setId(jobId)
-                    .setStatus(Status.createQueued(jobId))
-                    .setFilepath(file.getPath())
-                    .setMetadata(metadata)
-                    .setMimeType("image/jpeg")
-                    .build();
+                final Job job = Job.builder()
+                        .setId(jobId)
+                        .setStatus(Status.createQueued(jobId))
+                        .setFilepath(file.getPath())
+                        .setMetadata(metadata)
+                        .setMimeType("image/jpeg")
+                        .build();
 
-            uploadManager.enqueue(job);
+                uploadManager.enqueue(job);
+            }
         });
 
         apiService = Service.apiService(token, secret);
@@ -100,17 +102,32 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         subscriptions.add(uploadManager.status()
+                .flatMap(status -> {
+                    final String jobId = status.id();
+                    return uploadManager.getJob(jobId)
+                            .filter(job -> !Job.isInvalid(job))
+                            .map(job -> job.withStatus(status));
+                })
+                .map(job -> {
+                    final Map<String, Object> metadata = job.metadata();
+                    final String name = StringUtils.getOrEmpty((String) metadata.get("name"));
+                    final String description = StringUtils
+                            .getOrEmpty((String) metadata.get("description"));
+                    return UploadDataModel.create(name, description, job.status());
+                })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(status -> {
-                    final DataModel m = UploadDataModel.create(NAME, DESCRIPTION, status);
+                .subscribe(model -> {
+                    final Status status = model.getStatus();
                     if (status.statusType() == StatusType.COMPLETED) {
-                        adapter.remove(m);
-                        final PhotoJSONModel response = (PhotoJSONModel) status.response();
-                        if (response != null) {
-                            adapter.add(PhotoDataModel.create(response));
+                        adapter.remove(model);
+                        if (status.response() instanceof PhotoJSONModel) {
+                            final PhotoJSONModel response = (PhotoJSONModel) status.response();
+                            if (response != null) {
+                                adapter.add(PhotoDataModel.create(response));
+                            }
                         }
                     } else {
-                        adapter.add(m);
+                        adapter.add(model);
                     }
         }));
 

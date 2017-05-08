@@ -2,6 +2,7 @@ package com.jagsaund.rxuploader.sample.model.data;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import com.jagsaund.rxuploader.job.Status;
 import com.jagsaund.rxuploader.sample.model.wire.PhotoJSONModel;
 import com.jagsaund.rxuploader.utils.StringUtils;
 
@@ -16,6 +17,7 @@ public class PhotoDataModel implements DataModel {
     @NonNull private final String name;
     @NonNull private final String description;
     @NonNull private final String url;
+    @NonNull private final Status status;
 
     private PhotoDataModel(@NonNull String id, @NonNull String name, @Nullable String description,
             @NonNull String url) {
@@ -23,6 +25,7 @@ public class PhotoDataModel implements DataModel {
         this.name = name;
         this.description = StringUtils.getOrEmpty(description);
         this.url = url;
+        this.status = Status.createCompleted(id, null);
     }
 
     @DataModelType
@@ -45,6 +48,12 @@ public class PhotoDataModel implements DataModel {
     @NonNull
     public String getDescription() {
         return description;
+    }
+
+    @NonNull
+    @Override
+    public Status getStatus() {
+        return status;
     }
 
     @NonNull

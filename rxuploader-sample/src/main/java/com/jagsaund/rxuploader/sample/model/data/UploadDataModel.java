@@ -33,6 +33,7 @@ public class UploadDataModel implements DataModel {
     }
 
     @NonNull
+    @Override
     public Status getStatus() {
         return status;
     }
