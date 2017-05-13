@@ -13,7 +13,9 @@ Configuration
 2. Retrieve a Consumer Key and Consumer Secret by [registering the application][2]
 3. Update `Config.java` and replace the `CONSUMER_KEY` and `CONSUMER_SECRET` values you retrieved from Step 2
 4. Update `Config.java` and replace the `X_AUTH_USERNAME` and `X_AUTH_PASSWORD` with your username and password
-5. The photo to upload is read from the root external storage location. Push the photo to this location by opening terminal and entering `adb push <PATH TO PHOTO> /sdcard/test.jpeg`
+5. The photo to upload is read from the root external storage location. Push the photo to this location by opening terminal and entering `adb push <PATH TO PHOTO> /sdcard/test.jpg`
+  * 500px expects photos to be JPEG.
+  * Update `MainActivity.FILENAME` to reflect the name of files stored on the device (eg. extension {jpg or jpeg}, name, etc)
 6. The application doesn't explicitly ask for Storage permissions so you will need to enable these permissions explicitly by going to Settings -> Apps -> Sample -> Permissions -> Grant Storage permission
 
 [1]: https://500px.com/signup
