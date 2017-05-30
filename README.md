@@ -11,7 +11,7 @@ Add the following dependency to your project build.gradle file:
 (note: Gradle is the only supported build configuration at this time)
 ```
 dependencies {
-  compile 'com.github.jsaund:rxuploader:0.0.1'
+  compile 'com.github.jsaund:rxuploader:0.0.2'
 }
 ```
 
