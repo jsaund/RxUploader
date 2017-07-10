@@ -5,9 +5,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.2'
+        classpath 'com.android.tools.build:gradle:2.3.3'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-        classpath 'me.tatarka:gradle-retrolambda:3.6.0'
+        classpath 'me.tatarka:gradle-retrolambda:3.6.1'
     }
 }
 
@@ -23,8 +23,8 @@ subprojects { projects ->
 }
 
 ext {
-    versionName = '0.0.2'
-    versionCode = 2
+    versionName = '0.0.3'
+    versionCode = 3
 }
 
 def isReleaseBuild() {
