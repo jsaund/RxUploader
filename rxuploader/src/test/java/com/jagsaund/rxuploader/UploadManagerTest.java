@@ -19,6 +19,7 @@ import rx.schedulers.TestScheduler;
 import rx.subjects.TestSubject;
 
 import static com.jagsaund.rxuploader.job.Status.createQueued;
+import static com.jagsaund.rxuploader.job.Status.createSending;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
@@ -48,6 +49,8 @@ public class UploadManagerTest {
         testScheduler = new TestScheduler();
         statusSubject = TestSubject.create(testScheduler);
         jobSubject = TestSubject.create(testScheduler);
+
+        when(uploadInteractor.getAll()).thenReturn(Observable.empty());
 
         uploadManager =
                 new UploadManager(uploadInteractor, uploadErrorAdapter, jobSubject, statusSubject);
@@ -241,5 +244,42 @@ public class UploadManagerTest {
         testScheduler.triggerActions();
 
         ts.assertValues(Arrays.copyOfRange(expected, 5, expected.length));
+    }
+
+    @Test
+    public void testDanglingUpload() {
+        final String jobId1 = "job-id-1";
+        final String jobId2 = "job-id-2";
+
+        final Job job1 = Job.builder()
+                .setId(jobId1)
+                .setFilepath("filepath")
+                .setMetadata(Collections.emptyMap())
+                .setStatus(createQueued(jobId1))
+                .setMimeType("text/plain")
+                .build();
+
+        final Job job2 = Job.builder()
+                .setId(jobId2)
+                .setFilepath("filepath")
+                .setMetadata(Collections.emptyMap())
+                .setStatus(createSending(jobId2, 0))
+                .setMimeType("text/plain")
+                .build();
+
+        when(uploadInteractor.getAll())
+                .thenReturn(Observable.from(Arrays.asList(job1, job2)));
+
+        final TestScheduler testScheduler = new TestScheduler();
+        final TestSubject<Status> statusSubject = TestSubject.create(testScheduler);
+        final TestSubject<Job> jobSubject = TestSubject.create(testScheduler);
+
+        final UploadManager m = new UploadManager(uploadInteractor, uploadErrorAdapter, jobSubject,
+                statusSubject);
+
+        verify(uploadInteractor, times(1)).update(any(Status.class));
+
+        final Status expectedStatus = Status.createFailed(job2.id(), ErrorType.TERMINATED);
+        verify(uploadInteractor).update(expectedStatus);
     }
 }

@@ -6,6 +6,7 @@ public enum ErrorType {
     NETWORK("network"),
     FILE_NOT_FOUND("file_not_found"),
     SERVICE("service"),
+    TERMINATED("terminated"),
     UNKNOWN("unknown");
 
     @NonNull private final String type;

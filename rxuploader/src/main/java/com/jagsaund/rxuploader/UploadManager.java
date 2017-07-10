@@ -59,6 +59,16 @@ public class UploadManager {
 
         subscriptions = new CompositeSubscription();
 
+        // repair any dangling uploads
+        // eg. upload was previously in sending state and application terminated before
+        // upload state could be changed
+        final Observable<Job> repair = uploadInteractor.getAll()
+                .filter(job -> job.status().statusType() == StatusType.SENDING)
+                .flatMap(job -> {
+                    final Status status = Status.createFailed(job.id(), ErrorType.TERMINATED);
+                    return uploadInteractor.update(status);
+                });
+
         // read items from the job subject
         // save them to the data store
         // enqueue items in to the status subject for processing
@@ -122,6 +132,7 @@ public class UploadManager {
         subscriptions.add(jobQueue.subscribe(statusSubject::onNext));
         subscriptions.add(uploadJobs.subscribe(statusSubject::onNext));
         subscriptions.add(deleteJobs.subscribe(Actions.empty()));
+        subscriptions.add(repair.subscribe(job -> statusSubject.onNext(job.status())));
 
         subscriptions.add(statusUpdates.connect());
     }
