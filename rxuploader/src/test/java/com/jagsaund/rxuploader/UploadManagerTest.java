@@ -53,7 +53,8 @@ public class UploadManagerTest {
         when(uploadInteractor.getAll()).thenReturn(Observable.empty());
 
         uploadManager =
-                new UploadManager(uploadInteractor, uploadErrorAdapter, jobSubject, statusSubject);
+                new UploadManager(uploadInteractor, uploadErrorAdapter, jobSubject, statusSubject,
+                        false);
     }
 
     @Test
@@ -274,8 +275,7 @@ public class UploadManagerTest {
         final TestSubject<Status> statusSubject = TestSubject.create(testScheduler);
         final TestSubject<Job> jobSubject = TestSubject.create(testScheduler);
 
-        final UploadManager m = new UploadManager(uploadInteractor, uploadErrorAdapter, jobSubject,
-                statusSubject);
+        new UploadManager(uploadInteractor, uploadErrorAdapter, jobSubject, statusSubject, false);
 
         verify(uploadInteractor, times(1)).update(any(Status.class));
 

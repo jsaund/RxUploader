@@ -51,7 +51,7 @@ public class UploadManager {
     @VisibleForTesting
     UploadManager(@NonNull UploadInteractor uploadInteractor,
             @NonNull UploadErrorAdapter errorAdapter, @NonNull Subject<Job, Job> jobSubject,
-            @NonNull Subject<Status, Status> statusSubject) {
+            @NonNull Subject<Status, Status> statusSubject, boolean deleteRecordOnComplete) {
         this.jobSubject = jobSubject;
         this.statusSubject = statusSubject;
 
@@ -117,6 +117,12 @@ public class UploadManager {
                     return file.exists() && file.delete();
                 });
 
+        // consume items that have status type of completed and delete the record from the DB
+        final Observable<Job> deleteJobsFromDB = statusUpdates
+                .filter(status -> status.statusType() == StatusType.COMPLETED
+                        && deleteRecordOnComplete)
+                .flatMap(status -> uploadInteractor.delete(status.id()));
+
         // status updates which are progress updates of how much has been uploaded can be too
         // much for the client to consume -- filter this out and apply a backpressure mode
         // to keep the latest
@@ -132,6 +138,7 @@ public class UploadManager {
         subscriptions.add(jobQueue.subscribe(statusSubject::onNext));
         subscriptions.add(uploadJobs.subscribe(statusSubject::onNext));
         subscriptions.add(deleteJobs.subscribe(Actions.empty()));
+        subscriptions.add(deleteJobsFromDB.subscribe(Actions.empty()));
         subscriptions.add(repair.subscribe(job -> statusSubject.onNext(job.status())));
 
         subscriptions.add(statusUpdates.connect());
@@ -217,6 +224,7 @@ public class UploadManager {
         private UploadService uploadService;
         private UploadDataStore uploadDataStore;
         private UploadErrorAdapter uploadErrorAdapter;
+        private boolean deleteRecordOnComplete;
 
         private Builder() {
         }
@@ -267,6 +275,21 @@ public class UploadManager {
             return this;
         }
 
+        /**
+         * Delete the record of a completed upload from the database.
+         * The result of a completed is still propagated to clients but on a subsequent load there
+         * will be no record of that job and it's upload status existing.
+         * The default is to keep the upload record.
+         *
+         * @param delete {@linkplain Boolean#TRUE} to delete the record after completion and false
+         * otherwise
+         * @return Builder
+         */
+        public Builder withDeleteRecordOnComplete(boolean delete) {
+            this.deleteRecordOnComplete = delete;
+            return this;
+        }
+
         @NonNull
         public UploadManager build() {
             if (uploadService == null) {
@@ -289,8 +312,9 @@ public class UploadManager {
             final UploadInteractor uploadInteractor =
                     UploadInteractorImpl.create(uploader, uploadDataStore, uploadErrorAdapter);
 
+
             return new UploadManager(uploadInteractor, uploadErrorAdapter, jobSubject,
-                    statusSubject);
+                    statusSubject, deleteRecordOnComplete);
         }
     }
 }
